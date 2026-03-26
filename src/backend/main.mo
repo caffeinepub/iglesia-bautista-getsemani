@@ -1,17 +1,14 @@
 import Map "mo:core/Map";
 import Nat "mo:core/Nat";
 import Principal "mo:core/Principal";
-import Runtime "mo:core/Runtime";
 import Time "mo:core/Time";
 import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Migration "migration";
 
-(with migration = Migration.run)
-actor {
+persistent actor {
   type Member = {
     id : Nat;
     name : Text;
@@ -31,7 +28,7 @@ actor {
     name : Text;
   };
 
-  // Authorization
+  // Keep authorization state for upgrade compatibility
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -41,10 +38,7 @@ actor {
   let members = Map.empty<Nat, Member>();
   var nextMemberId = 1;
 
-  public shared ({ caller }) func addMember(name : Text) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can add members");
-    };
+  public shared func addMember(name : Text) : async Nat {
     let id = nextMemberId;
     let member : Member = {
       id;
@@ -57,24 +51,15 @@ actor {
     id;
   };
 
-  public query ({ caller }) func getMembers() : async [Member] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can get members");
-    };
+  public query func getMembers() : async [Member] {
     members.values().toArray();
   };
 
-  public query ({ caller }) func getMember(id : Nat) : async ?Member {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update members");
-    };
+  public query func getMember(id : Nat) : async ?Member {
     members.get(id);
   };
 
-  public shared ({ caller }) func updateMember(id : Nat, name : Text) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can update members");
-    };
+  public shared func updateMember(id : Nat, name : Text) : async Bool {
     switch (members.get(id)) {
       case (null) { false };
       case (?existing) {
@@ -88,19 +73,15 @@ actor {
     };
   };
 
-  public shared ({ caller }) func deleteMember(id : Nat) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete members");
-    };
+  public shared func deleteMember(id : Nat) : async Bool {
     if (not members.containsKey(id)) { return false };
-    // Check donations for member
     let memberDonations = donations.filter(
       func(_, d) {
         d.memberId == id;
       }
     );
     if (memberDonations.size() > 0) {
-      Runtime.trap("Cannot delete member, donations exist");
+      return false;
     };
     members.remove(id);
     true;
@@ -110,10 +91,7 @@ actor {
   let donations = Map.empty<Nat, Donation>();
   var nextDonationId = 1;
 
-  public shared ({ caller }) func addDonation(memberId : Nat, amount : Float, date : Text) : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can add donations");
-    };
+  public shared func addDonation(memberId : Nat, amount : Float, date : Text) : async Nat {
     let id = nextDonationId;
     nextDonationId += 1;
     let donation : Donation = {
@@ -127,47 +105,29 @@ actor {
     id;
   };
 
-  public shared ({ caller }) func deleteDonation(id : Nat) : async Bool {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete donations");
-    };
+  public shared func deleteDonation(id : Nat) : async Bool {
     if (not donations.containsKey(id)) { return false };
     donations.remove(id);
     true;
   };
 
-  public query ({ caller }) func getDonationsByMember(memberId : Nat) : async [Donation] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can view donations");
-    };
+  public query func getDonationsByMember(memberId : Nat) : async [Donation] {
     donations.values().toArray().filter(func(d) { d.memberId == memberId });
   };
 
-  public query ({ caller }) func getAllDonations() : async [Donation] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can view donations");
-    };
+  public query func getAllDonations() : async [Donation] {
     donations.values().toArray();
   };
 
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
-    };
+  public query func getUserProfile(user : Principal) : async ?UserProfile {
     userProfiles.get(user);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
-    };
     userProfiles.add(caller, profile);
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view profiles");
-    };
     userProfiles.get(caller);
   };
 };

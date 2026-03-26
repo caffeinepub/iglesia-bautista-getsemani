@@ -17,7 +17,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Printer } from "lucide-react";
+import { FileText, Printer } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Donation, Member } from "../backend";
 import { useAllDonations, useMembers } from "../hooks/useQueries";
@@ -27,7 +27,11 @@ import {
   getCurrentYear,
   getCurrentYearMonth,
 } from "../utils/formatters";
-import { printMemberReceipt, printSummaryReport } from "../utils/print";
+import {
+  printDetailedAnnualReport,
+  printMemberReceipt,
+  printSummaryReport,
+} from "../utils/print";
 
 const SKELETON_ROWS = ["a", "b", "c", "d", "e"];
 
@@ -100,10 +104,12 @@ function ReportTable({
   rows,
   period,
   isLoading,
+  onPrintDetailed,
 }: {
   rows: ReportRow[];
   period: string;
   isLoading: boolean;
+  onPrintDetailed?: () => void;
 }) {
   const grandTotal = useMemo(
     () => rows.reduce((s, r) => s + r.total, 0),
@@ -150,7 +156,7 @@ function ReportTable({
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
         <Button
           data-ocid="reports.print_summary.button"
           onClick={handlePrintSummary}
@@ -160,6 +166,18 @@ function ReportTable({
           <Printer className="w-4 h-4 mr-1.5" />
           Imprimir Resumen
         </Button>
+        {onPrintDetailed && (
+          <Button
+            data-ocid="reports.print_detailed.button"
+            onClick={onPrintDetailed}
+            size="sm"
+            variant="outline"
+            className="border-navy text-navy hover:bg-navy hover:text-white font-semibold"
+          >
+            <FileText className="w-4 h-4 mr-1.5" />
+            Imprimir Reporte Detallado
+          </Button>
+        )}
       </div>
       <Table>
         <TableHeader>
@@ -305,6 +323,23 @@ function AnnualReport({
     [members, filteredDonations],
   );
 
+  const grandTotal = useMemo(
+    () => rows.reduce((s, r) => s + r.total, 0),
+    [rows],
+  );
+
+  const handlePrintDetailed = () => {
+    printDetailedAnnualReport({
+      year,
+      rows: rows.map((r) => ({
+        memberName: r.member.name,
+        donations: r.donations.map((d) => ({ date: d.date, amount: d.amount })),
+        total: r.total,
+      })),
+      grandTotal,
+    });
+  };
+
   return (
     <div className="space-y-4">
       <Select value={year} onValueChange={setYear}>
@@ -319,7 +354,12 @@ function AnnualReport({
           ))}
         </SelectContent>
       </Select>
-      <ReportTable rows={rows} period={`Año ${year}`} isLoading={isLoading} />
+      <ReportTable
+        rows={rows}
+        period={`Año ${year}`}
+        isLoading={isLoading}
+        onPrintDetailed={handlePrintDetailed}
+      />
     </div>
   );
 }

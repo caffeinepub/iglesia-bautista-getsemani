@@ -96,6 +96,27 @@ const printBaseStyles = `
     border-top: 1px solid #E7DDCF;
     padding-top: 16px;
   }
+  .member-section {
+    margin-bottom: 36px;
+    page-break-inside: avoid;
+  }
+  .member-section-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0F2E4F;
+    background: #f4e9d9;
+    padding: 8px 12px;
+    margin-bottom: 0;
+    border-left: 4px solid #C8A24A;
+  }
+  .grand-total-row td {
+    font-weight: 700;
+    font-size: 14px;
+    color: #0F2E4F;
+    background: #e8d9b8;
+    border-top: 3px solid #C8A24A;
+    border-bottom: none;
+  }
 `;
 
 export interface MemberReceiptData {
@@ -111,6 +132,16 @@ export interface SummaryReportData {
   grandTotal: number;
 }
 
+export interface DetailedAnnualReportData {
+  year: string;
+  rows: Array<{
+    memberName: string;
+    donations: Array<{ date: string; amount: number }>;
+    total: number;
+  }>;
+  grandTotal: number;
+}
+
 export function printMemberReceipt(data: MemberReceiptData) {
   const rows = data.donations
     .map(
@@ -122,7 +153,7 @@ export function printMemberReceipt(data: MemberReceiptData) {
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Recibo</title>
   <style>${printBaseStyles}</style></head><body><div class="receipt">
   <div class="header">
-    <p class="church-name">Iglesia Bautista Getsemani</p>
+    <p class="church-name">Iglesia Cristiana Bautista Getsemani</p>
     <p class="receipt-title">Recibo de Ofrendas</p>
     <p class="period">${data.period}</p>
   </div>
@@ -134,7 +165,7 @@ export function printMemberReceipt(data: MemberReceiptData) {
       <tr class="total-row"><td>Total</td><td class="amount">${formatCurrency(data.total)}</td></tr>
     </tbody>
   </table>
-  <div class="footer">Iglesia Bautista Getsemani &mdash; Gracias por su ofrenda</div>
+  <div class="footer">Iglesia Cristiana Bautista Getsemani &mdash; Gracias por su ofrenda</div>
   </div></body></html>`;
 
   printHTML(html);
@@ -151,7 +182,7 @@ export function printSummaryReport(data: SummaryReportData) {
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte</title>
   <style>${printBaseStyles}</style></head><body><div class="receipt">
   <div class="header">
-    <p class="church-name">Iglesia Bautista Getsemani</p>
+    <p class="church-name">Iglesia Cristiana Bautista Getsemani</p>
     <p class="receipt-title">Reporte de Ofrendas</p>
     <p class="period">${data.period}</p>
   </div>
@@ -162,7 +193,51 @@ export function printSummaryReport(data: SummaryReportData) {
       <tr class="total-row"><td colspan="2">Gran Total</td><td class="amount">${formatCurrency(data.grandTotal)}</td></tr>
     </tbody>
   </table>
-  <div class="footer">Iglesia Bautista Getsemani &mdash; Reporte Generado ${new Date().toLocaleDateString("es-ES")}</div>
+  <div class="footer">Iglesia Cristiana Bautista Getsemani &mdash; Reporte Generado ${new Date().toLocaleDateString("es-ES")}</div>
+  </div></body></html>`;
+
+  printHTML(html);
+}
+
+export function printDetailedAnnualReport(data: DetailedAnnualReportData) {
+  const memberSections = data.rows
+    .map((row) => {
+      const donationRows = row.donations
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .map(
+          (d) =>
+            `<tr><td>${formatDateSpanish(d.date)}</td><td class="amount">${formatCurrency(d.amount)}</td></tr>`,
+        )
+        .join("");
+      return `
+        <div class="member-section">
+          <p class="member-section-name">${row.memberName}</p>
+          <table>
+            <thead><tr><th>Fecha</th><th class="amount">Monto</th></tr></thead>
+            <tbody>
+              ${donationRows}
+              <tr class="total-row"><td>Subtotal</td><td class="amount">${formatCurrency(row.total)}</td></tr>
+            </tbody>
+          </table>
+        </div>`;
+    })
+    .join("");
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Reporte Detallado ${data.year}</title>
+  <style>${printBaseStyles}</style></head><body><div class="receipt">
+  <div class="header">
+    <p class="church-name">Iglesia Cristiana Bautista Getsemani</p>
+    <p class="receipt-title">Reporte Detallado de Ofrendas</p>
+    <p class="period">Año ${data.year}</p>
+  </div>
+  ${memberSections}
+  <table>
+    <tbody>
+      <tr class="grand-total-row"><td>GRAN TOTAL (${data.rows.length} miembros)</td><td class="amount">${formatCurrency(data.grandTotal)}</td></tr>
+    </tbody>
+  </table>
+  <div class="footer">Iglesia Cristiana Bautista Getsemani &mdash; Reporte Generado ${new Date().toLocaleDateString("es-ES")}</div>
   </div></body></html>`;
 
   printHTML(html);

@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ChurchIcon, Eye, EyeOff, Lock, User } from "lucide-react";
-import { motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -24,7 +23,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     e.preventDefault();
     setError("");
     setLoading(true);
-    // Small delay for UX feel
     await new Promise((r) => setTimeout(r, 400));
     if (username.trim() === ADMIN_USER && password === ADMIN_PASS) {
       toast.success("Bienvenido, Administrador");
@@ -37,19 +35,14 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="w-full max-w-sm"
-      >
+      <div className="w-full max-w-sm">
         {/* Church branding */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 rounded-2xl bg-navy flex items-center justify-center mx-auto mb-4 shadow-lg">
             <ChurchIcon className="w-10 h-10 text-gold" />
           </div>
           <h1 className="text-2xl font-bold text-navy leading-tight">
-            Iglesia Bautista
+            Iglesia Cristiana Bautista
             <br />
             Getsemani
           </h1>
@@ -114,14 +107,12 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             </div>
 
             {error && (
-              <motion.p
+              <p
                 data-ocid="login.error_state"
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
                 className="text-sm text-destructive font-medium text-center"
               >
                 {error}
-              </motion.p>
+              </p>
             )}
 
             <Button
@@ -133,18 +124,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               {loading ? "Verificando..." : "Iniciar Sesión"}
             </Button>
           </form>
-
-          {/* Credential hint */}
-          <div className="mt-5 p-3 bg-cream rounded-lg border border-cream-dark">
-            <p className="text-xs text-muted-foreground text-center font-medium mb-1">
-              Credenciales de acceso:
-            </p>
-            <p className="text-xs text-center text-foreground">
-              <span className="font-semibold">Usuario:</span> admin
-              &nbsp;&nbsp;/&nbsp;&nbsp;
-              <span className="font-semibold">Contraseña:</span> getsemani2024
-            </p>
-          </div>
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-6">
@@ -158,7 +137,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             caffeine.ai
           </a>
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

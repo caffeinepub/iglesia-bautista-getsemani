@@ -9,7 +9,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Calendar, TrendingUp, Users } from "lucide-react";
-import { motion } from "motion/react";
 import { useMemo } from "react";
 import { useAllDonations, useMembers } from "../hooks/useQueries";
 import {
@@ -83,13 +82,8 @@ export function DashboardPage() {
     <div className="space-y-6">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {kpis.map((kpi, i) => (
-          <motion.div
-            key={kpi.title}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08 }}
-          >
+        {kpis.map((kpi) => (
+          <div key={kpi.title}>
             <Card
               data-ocid={kpi.ocid}
               className="shadow-card border-cream-dark"
@@ -112,7 +106,7 @@ export function DashboardPage() {
                 )}
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
 

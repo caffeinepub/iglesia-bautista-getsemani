@@ -29,7 +29,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Eye, Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { Donation, Member } from "../backend";
@@ -201,8 +200,9 @@ function MemberFormDialog({
         toast.success("Miembro agregado");
       }
       onClose();
-    } catch {
-      toast.error("Error al guardar el miembro");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Error al guardar el miembro: ${msg}`);
     }
   };
 
@@ -342,54 +342,49 @@ export function MembersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <AnimatePresence>
-                  {filtered.map((m, i) => (
-                    <motion.tr
-                      key={m.id.toString()}
-                      data-ocid={`members.item.${i + 1}`}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="text-[13px] border-b border-cream-dark hover:bg-cream/30"
-                    >
-                      <td className="px-4 py-3 text-muted-foreground text-xs">
-                        {i + 1}
-                      </td>
-                      <td className="px-4 py-3 font-medium">{m.name}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            type="button"
-                            data-ocid={`members.view.button.${i + 1}`}
-                            onClick={() => setDetailMember(m)}
-                            title="Ver historial"
-                            className="p-1.5 rounded hover:bg-navy/10 text-navy transition-colors"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            data-ocid={`members.edit_button.${i + 1}`}
-                            onClick={() => openEdit(m)}
-                            title="Editar"
-                            className="p-1.5 rounded hover:bg-gold/20 text-gold-dark transition-colors"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            data-ocid={`members.delete_button.${i + 1}`}
-                            onClick={() => setDeletingMember(m)}
-                            title="Eliminar"
-                            className="p-1.5 rounded hover:bg-destructive/10 text-destructive transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
+                {filtered.map((m, i) => (
+                  <tr
+                    key={m.id.toString()}
+                    data-ocid={`members.item.${i + 1}`}
+                    className="text-[13px] border-b border-cream-dark hover:bg-cream/30"
+                  >
+                    <td className="px-4 py-3 text-muted-foreground text-xs">
+                      {i + 1}
+                    </td>
+                    <td className="px-4 py-3 font-medium">{m.name}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          data-ocid={`members.view.button.${i + 1}`}
+                          onClick={() => setDetailMember(m)}
+                          title="Ver historial"
+                          className="p-1.5 rounded hover:bg-navy/10 text-navy transition-colors"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          data-ocid={`members.edit_button.${i + 1}`}
+                          onClick={() => openEdit(m)}
+                          title="Editar"
+                          className="p-1.5 rounded hover:bg-gold/20 text-gold-dark transition-colors"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          data-ocid={`members.delete_button.${i + 1}`}
+                          onClick={() => setDeletingMember(m)}
+                          title="Eliminar"
+                          className="p-1.5 rounded hover:bg-destructive/10 text-destructive transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </TableBody>
             </Table>
           )}

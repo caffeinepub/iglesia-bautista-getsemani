@@ -6,7 +6,6 @@ import {
   PlusCircle,
   Users,
 } from "lucide-react";
-import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import type { Page } from "../App";
 
@@ -46,8 +45,8 @@ export function Layout({
               <ChurchIcon className="w-5 h-5 text-sidebar-primary-foreground" />
             </div>
             <div>
-              <p className="text-[11px] text-sidebar-foreground/60 uppercase tracking-widest font-medium leading-none mb-1">
-                Iglesia Bautista
+              <p className="text-[10px] text-sidebar-foreground/60 uppercase tracking-widest font-medium leading-none mb-1">
+                Iglesia Cristiana Bautista
               </p>
               <p className="text-[13px] font-bold text-sidebar-foreground leading-tight">
                 Getsemani
@@ -106,15 +105,9 @@ export function Layout({
         </header>
 
         {/* Page content */}
-        <motion.main
-          key={currentPage}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-          className="flex-1 overflow-y-auto p-6"
-        >
+        <main key={currentPage} className="flex-1 overflow-y-auto p-6">
           {children}
-        </motion.main>
+        </main>
       </div>
     </div>
   );
